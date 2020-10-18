@@ -1,8 +1,10 @@
-const express = require('express')
-const axios = require("axios")
+require("dotenv").config();
 
-const app = express()
+const express = require("express");
+const axios = require("axios");
 
+const app = express();
+app.use(express.json());
 
 // https://www.w3.org/TR/websub/#high-level-protocol-flow
 
@@ -39,16 +41,50 @@ Hub: Twitch Api
 
 */
 
-app.get("/", async(req, res) => {
+app.get("/", async (req, res) => {
+  const data = {
+    "hub.mode": "subscribe",
+    "hub.topic": "https://api.twitch.tv/helix/streams?user_id=437144416",
+    "hub.lease_seconds": 86400, // 7days == 86400s
+    "hub.callback": "https://grevious-wounds.herokuapp.com/callback",
+  };
+  //console.log(process.env.ACCESS_TOKEN);
 
-})
+  try {
+    const result = await axios.post(
+      "https://api.twitch.tv/helix/webhooks/hub",
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+          "Client-Id": process.env.CLIENT_ID,
+        },
+      }
+    );
+    res.status(200).send("ne7ila");
+  } catch (e) {
+    console.log(e);
+    res.json({
+      error: e.message,
+      //errorRequest: e.response.data,
+    });
+  }
+});
 
-app.get("/callback", async(req, res) => {
+app.get("/callback", async (req, res) => {
+  const body = req.query;
+  //console.log(body["hub.challenge"]);
 
-})
+  if (body["hub.challenge"]) {
+    res.status(200).send(body["hub.challenge"]);
+  } else {
+    console.log(body["hub.reason"]);
+    res.status(400).json(body);
+  }
+});
 
-app.post("/callback", async(req, res) => {
+app.post("/callback", async (req, res) => {});
 
-})
-
-
+app.listen(5000 || process.env.PORT, () => {
+  console.log(`UwU....${5000 || process.env.PORT}`);
+});
