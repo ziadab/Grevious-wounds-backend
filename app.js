@@ -1,7 +1,11 @@
 require("dotenv").config();
+const util = require("util");
 
 const express = require("express");
 const axios = require("axios");
+const Discord = require("discord.js");
+
+const client = new Discord.Client();
 
 const app = express();
 app.use(express.json());
@@ -44,8 +48,8 @@ Hub: Twitch Api
 app.get("/", async (req, res) => {
   const data = {
     "hub.mode": "subscribe",
-    "hub.topic": "https://api.twitch.tv/helix/streams?user_id=437144416",
-    "hub.lease_seconds": 86400, // 7days == 86400s
+    "hub.topic": `https://api.twitch.tv/helix/streams?user_id=${req.query.userId}`,
+    "hub.lease_seconds": 259200, // 7days == 604800
     "hub.callback": "https://grevious-wounds.herokuapp.com/callback",
   };
   //console.log(process.env.ACCESS_TOKEN);
@@ -83,7 +87,31 @@ app.get("/callback", async (req, res) => {
   }
 });
 
-app.post("/callback", async (req, res) => {});
+client.on("ready", () => {
+  client.user.setPresence({
+    game: {
+      name: "Blood for NEXUS",
+    },
+  });
+  app.post("/callback", async (req, res) => {
+    const body = req.body;
+    const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+    // bad
+    //channel.send(`\`\`\`json\n${util.inspect(body, false, null)}\`\`\``);
+    //medium
+    // channel.send("```json\n" + util.inspect(body, false, null)+ "```")
+    //good
+    const msg = `<@232909121639153665> <@490663251953188865> DATA WE RECIEVED FROM TWITCH`.concat(
+      "\n",
+      "```json\n" + util.inspect(body, false, null) + "```"
+    );
+    channel.send(msg);
+
+    res.status(200).send("Ok");
+  });
+});
+
+client.login(process.env.DISCORD_TOKEN);
 
 app.listen(5000 || process.env.PORT, () => {
   console.log(`UwU....${5000 || process.env.PORT}`);
