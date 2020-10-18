@@ -113,6 +113,6 @@ client.on("ready", () => {
 
 client.login(process.env.DISCORD_TOKEN);
 
-app.listen(5000 || process.env.PORT, () => {
-  console.log(`UwU....${5000 || process.env.PORT}`);
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`UwU....${process.env.PORT || 5000}`);
 });
