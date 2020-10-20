@@ -45,9 +45,50 @@ Hub: Twitch Api
 
 */
 
+/* 
+
+  subscibe section
+
+*/
 app.get("/", async (req, res) => {
   const data = {
     "hub.mode": "subscribe",
+    "hub.topic": `https://api.twitch.tv/helix/streams?user_id=${req.query.userId}`,
+    "hub.lease_seconds": 604800, // 7days == 604800
+    "hub.callback": "https://grevious-wounds.herokuapp.com/callback",
+  };
+  //console.log(process.env.ACCESS_TOKEN);
+
+  try {
+    const result = await axios.post(
+      "https://api.twitch.tv/helix/webhooks/hub",
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+          "Client-Id": process.env.CLIENT_ID,
+        },
+      }
+    );
+    res.status(200).send("ne7ila");
+  } catch (e) {
+    console.log(e);
+    res.json({
+      error: e.message,
+      //errorRequest: e.response.data,
+    });
+  }
+});
+
+/* 
+
+  unsubscibe section
+
+*/
+
+app.get("/unsubscribe", async (req, res) => {
+  const data = {
+    "hub.mode": "unsubscribe",
     "hub.topic": `https://api.twitch.tv/helix/streams?user_id=${req.query.userId}`,
     "hub.lease_seconds": 259200, // 7days == 604800
     "hub.callback": "https://grevious-wounds.herokuapp.com/callback",
@@ -75,6 +116,12 @@ app.get("/", async (req, res) => {
   }
 });
 
+/* 
+
+  callback section
+
+*/
+
 app.get("/callback", async (req, res) => {
   const body = req.query;
   //console.log(body["hub.challenge"]);
@@ -101,7 +148,7 @@ client.on("ready", () => {
     //medium
     // channel.send("```json\n" + util.inspect(body, false, null)+ "```")
     //good
-    const msg = `<@232909121639153665> <@490663251953188865> DATA WE RECIEVED FROM TWITCH`.concat(
+    const msg = `<@232909121639153665> <@490663251953188865> LOL ARABIA IS STREAMING U BITCHES QJKSJQKJQKj`.concat(
       "\n",
       "```json\n" + util.inspect(body, false, null) + "```"
     );
