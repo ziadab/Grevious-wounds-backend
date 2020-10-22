@@ -2,12 +2,18 @@ require("dotenv").config();
 const util = require("util");
 
 const express = require("express");
+
 const axios = require("axios");
 const Discord = require("discord.js");
 
 const client = new Discord.Client();
 
 const app = express();
+
+// convert express app to http app to use socket.io
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+
 app.use(express.json());
 
 // https://www.w3.org/TR/websub/#high-level-protocol-flow
@@ -143,16 +149,19 @@ client.on("ready", () => {
   app.post("/callback", async (req, res) => {
     const body = req.body;
     const channel = client.channels.cache.get(process.env.CHANNEL_ID);
-    // bad
-    //channel.send(`\`\`\`json\n${util.inspect(body, false, null)}\`\`\``);
-    //medium
-    // channel.send("```json\n" + util.inspect(body, false, null)+ "```")
-    //good
+
     const msg = `<@232909121639153665> <@490663251953188865> LOL ARABIA IS STREAMING U BITCHES QJKSJQKJQKj`.concat(
       "\n",
       "```json\n" + util.inspect(body, false, null) + "```"
     );
     channel.send(msg);
+    if (body.data == [] || body.data.length == 0) {
+      // here we know that the stream ended
+      io.emit("STREAM_END");
+    } else {
+      // we know that stream start or change title or any event happen
+      io.emit("STREAM_START", body.data);
+    }
 
     res.status(200).send("Ok");
   });
@@ -160,6 +169,6 @@ client.on("ready", () => {
 
 client.login(process.env.DISCORD_TOKEN);
 
-app.listen(process.env.PORT || 5000, () => {
+http.listen(process.env.PORT || 5000, () => {
   console.log(`UwU....${process.env.PORT || 5000}`);
 });
