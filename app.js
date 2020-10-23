@@ -167,6 +167,17 @@ client.on("ready", () => {
   });
 });
 
+/**
+ *
+ * TESTING UWU
+ *
+ */
+
+app.get("/test", async (req, res) => {
+  io.emit("TEST");
+  res.send("Sended!");
+});
+
 client.login(process.env.DISCORD_TOKEN);
 
 http.listen(process.env.PORT || 5000, () => {
