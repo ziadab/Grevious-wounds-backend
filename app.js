@@ -5,6 +5,7 @@ const express = require("express");
 
 const axios = require("axios");
 const Discord = require("discord.js");
+const cron = require("node-cron");
 
 const client = new Discord.Client();
 
@@ -51,11 +52,47 @@ Hub: Twitch Api
 
 */
 
+/**
+ *
+ * CRON FOR LOLARABIA
+ */
+
+cron.schedule("0 0 * * 1", async () => {
+  const data = {
+    "hub.mode": "subscribe",
+    "hub.topic": `https://api.twitch.tv/helix/streams?user_id=437144416`,
+    "hub.lease_seconds": 604800, // 7days == 604800
+    "hub.callback": "https://grevious-wounds.herokuapp.com/callback",
+  };
+  //console.log(process.env.ACCESS_TOKEN);
+
+  try {
+    const result = await axios.post(
+      "https://api.twitch.tv/helix/webhooks/hub",
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+          "Client-Id": process.env.CLIENT_ID,
+        },
+      }
+    );
+    console.log("ne7ila");
+  } catch (e) {
+    console.log(e);
+    // res.json({
+    //   error: e.message,
+    //   //errorRequest: e.response.data,
+    // });
+  }
+});
+
 /* 
 
   subscibe section
 
 */
+
 app.get("/", async (req, res) => {
   const data = {
     "hub.mode": "subscribe",
